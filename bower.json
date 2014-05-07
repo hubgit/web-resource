@@ -1,0 +1,13 @@
+{
+  "name": "web-resource",
+  "version": "0.0.0",
+  "main": "resource.js",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}

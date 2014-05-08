@@ -41,7 +41,7 @@ Queue.prototype.next = function() {
     }
 };
 
-Queue.prototype.result = function() {
+Queue.prototype.onresult = function() {
     this.counter--;
     window.setTimeout(this.next.bind(this), this.rateLimit);
 };

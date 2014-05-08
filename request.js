@@ -20,14 +20,14 @@ var Request = function(options) {
         server: options.delayServer || 1
     };
 
+    this.prepare(); // may alter the URL
+
     this.deferred = {};
 
     this.promise = new Promise(function(resolve, reject) {
-        this.resolve = resolve;
-        this.reject = reject;
-    }.bind(this.deferred));
-
-    this.prepare(); // may alter the URL
+        this.deferred.resolve = resolve;
+        this.deferred.reject = reject;
+    }.bind(this));
 };
 
 Request.prototype.prepare = function() {
@@ -62,12 +62,10 @@ Request.prototype.run = function() {
             case 200: // ok
             case 201: // ok
             case 204: // ok
-                // TODO: detect rate limits before they're hit?
                 this.deferred.resolve(xhr.response);
                 break;
 
             case 403: // rate-limited
-                // TODO: detect rate-limit headers
                 this.queue.stop(this.rateLimitDelay(xhr));
                 this.queue.items.unshift(this); // add this request back on to the start of the queue
                 this.deferred.notify('rate-limit');

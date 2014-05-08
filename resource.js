@@ -58,6 +58,7 @@ Resource.prototype.get = function(responseType, headers) {
 
     console.log('request', options);
 
+    // TODO: needs a promise for each request?
     if (!this.promise) {
         this.request = new Request(options);
         this.promise = this.request.enqueue();
@@ -80,9 +81,11 @@ var CollectionResource = function(url, params) {
             }
         },
         next: function(response, request) {
-            if (request.xhr.getResponseHeader('Link')) {
-                // Refused to get unsafe header "Link"
-                // TODO: parse Link headers for rel=next
+            var link = request.xhr.getResponseHeader('Link');
+
+            if (link) {
+                console.log(link);
+                // TODO: parse rel="next" link
             }
 
             switch (request.responseType) {
@@ -107,7 +110,6 @@ CollectionResource.prototype.get = function(responseType, headers) {
             var resource = new Resource(url);
 
             resource.get(responseType, headers).then(function(response) {
-                // this = Resource
                 pagination.items(response, resource.request).forEach(function(item) {
                     items.push(item);
                 });

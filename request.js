@@ -136,3 +136,18 @@ Request.prototype.queueName = function() {
     return a.hostname;
 };
 
+Request.prototype.parseLinkHeader = function(header) {
+  var links = {};
+
+  header.split(/\s*,\s*/).forEach(function(headerPart) {
+    var parts = headerPart.split(/\s*;\s*/);
+
+    var url = parts[0].replace(/<(.*)>/, '$1').trim();
+    var name = parts[1].replace(/rel="(.*)"/, '$1').trim();
+
+    links[name] = url;
+  });
+
+  return links;
+};
+

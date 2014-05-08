@@ -62,12 +62,13 @@ Request.prototype.run = function() {
             case 200: // ok
             case 201: // ok
             case 204: // ok
+                // TODO: detect rate limits before they're hit?
                 this.deferred.resolve(xhr.response);
                 break;
 
             case 403: // rate-limited
                 // TODO: detect rate-limit headers
-                this.queue.stop(this.delay.rate);
+                this.queue.stop(this.rateLimitDelay(xhr));
                 this.queue.items.unshift(this); // add this request back on to the start of the queue
                 this.deferred.notify('rate-limit');
                 break;
@@ -103,6 +104,24 @@ Request.prototype.run = function() {
     xhr.send(this.data);
 
     return this.promise;
+};
+
+Request.prototype.rateLimitDelay = function(xhr) {
+    var reset = xhr.getResponseHeader('x-rate-limit-reset');
+
+    // use the default if no rate-limit header
+    if (!reset) {
+        return this.delay.rate;
+    }
+
+    var delay = reset - Date.now();
+
+    // 15 minute delay if the given delay seems incorrect (can be due to server time differences)
+    if (delay < 10) {
+        delay = 60 * 15;
+    }
+
+    return delay;
 };
 
 Request.prototype.queueName = function() {

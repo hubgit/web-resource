@@ -33,11 +33,11 @@ Queue.prototype.next = function() {
         return;
     }
 
-    var onresult = this.result.bind(this);
-
     while (this.items.length && this.counter < this.parallel) {
         this.counter++;
-        this.items.shift().run().then(onresult, onresult);
+
+        // continue on either success or failure
+        this.items.shift().run().then(this.onresult.bind(this), this.onresult.bind(this));
     }
 };
 

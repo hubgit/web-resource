@@ -72,7 +72,6 @@ Resource.prototype.get = function(responseType, headers) {
 var CollectionResource = function(url, params) {
     Resource.call(this, url, params);
 
-    // TODO: depends on responseType & headers?
     this.pagination = {
         items: function(response, request) {
             switch (request.responseType) {
@@ -100,8 +99,8 @@ CollectionResource.prototype = Object.create(Resource.prototype);
 //CollectionResource.prototype.constructor = CollectionResource;
 
 CollectionResource.prototype.get = function(responseType, headers) {
-    var url = this.url;
-    var pagination = this.pagination;
+    var resource = this;
+    var pagination = resource.pagination;
 
     return new Promise(function(resolve, reject) {
         var items = [];
@@ -115,6 +114,7 @@ CollectionResource.prototype.get = function(responseType, headers) {
                 });
 
                 var next = pagination.next(response, resource.request);
+                // TODO: handle URL + params?
 
                 if (next) {
                     fetch(next);
@@ -124,6 +124,6 @@ CollectionResource.prototype.get = function(responseType, headers) {
             }, reject);
         };
 
-        fetch(url);
+        fetch(resource.url);
     });
 };

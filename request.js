@@ -66,9 +66,12 @@ Request.prototype.run = function() {
                 break;
 
             case 403: // rate-limited
-                this.queue.stop(this.rateLimitDelay(xhr));
+            case 429: // rate-limited
+                var delay = this.rateLimitDelay(xhr);
+                console.log('Rate-limited: sleeping for', delay, 'seconds');
+                this.queue.stop(delay);
                 this.queue.items.unshift(this); // add this request back on to the start of the queue
-                this.deferred.notify('rate-limit');
+                //this.deferred.notify('rate-limit');
                 break;
 
             case 500: // server error
@@ -106,6 +109,10 @@ Request.prototype.run = function() {
 
 Request.prototype.rateLimitDelay = function(xhr) {
     var reset = xhr.getResponseHeader('x-rate-limit-reset');
+
+    if (!reset) {
+        reset = xhr.getResponseHeader('x-ratelimit-reset');
+    }
 
     // use the default if no rate-limit header
     if (!reset) {

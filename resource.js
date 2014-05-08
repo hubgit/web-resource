@@ -1,4 +1,4 @@
-/*global HTTP:false */
+/*global Request:false */
 
 'use strict';
 
@@ -56,41 +56,72 @@ Resource.prototype.get = function(responseType, headers) {
         responseType: this.prepareResponseType(responseType),
     };
 
-    if (this.pagination) {
-        return this.getPages(options, this.pagination);
+    console.log('request', options);
+
+    if (!this.promise) {
+        this.request = new Request(options);
+        this.promise = this.request.enqueue();
     }
 
-    var request = new HTTP.Request(options);
-
-    return request.promise;
+    return this.promise;
 };
 
-//pagination: { items: function(page) { … }, next: function(page) { … } }
+/* Collection Resource */
 
-Resource.prototype.getPages = function(options, pagination) {
+var CollectionResource = function(url, params) {
+    Resource.call(this, url, params);
+
+    // TODO: depends on responseType & headers?
+    this.pagination = {
+        items: function(response, request) {
+            switch (request.responseType) {
+                case 'json':
+                    return response._items;
+            }
+        },
+        next: function(response, request) {
+            if (request.xhr.getResponseHeader('Link')) {
+                // Refused to get unsafe header "Link"
+                // TODO: parse Link headers for rel=next
+            }
+
+            switch (request.responseType) {
+                case 'json':
+                    return response._links.next ? response._links.next.href : null;
+            }
+        }
+    };
+};
+
+CollectionResource.prototype = Object.create(Resource.prototype);
+//CollectionResource.prototype.constructor = CollectionResource;
+
+CollectionResource.prototype.get = function(responseType, headers) {
+    var url = this.url;
+    var pagination = this.pagination;
+
     return new Promise(function(resolve, reject) {
         var items = [];
 
-        var fetch = function() {
-            var request = new HTTP.Request(options);
+        var fetch = function(url) {
+            var resource = new Resource(url);
 
-            request.promise.then(function(page) {
-                pagination.items(page).forEach(function(item) {
-                    console.log(item);
+            resource.get(responseType, headers).then(function(response) {
+                // this = Resource
+                pagination.items(response, resource.request).forEach(function(item) {
                     items.push(item);
                 });
 
-                options.url = pagination.next(page);
+                var next = pagination.next(response, resource.request);
 
-                if (options.url) {
-                    fetch();
+                if (next) {
+                    fetch(next);
                 } else {
                     resolve(items);
                 }
             }, reject);
         };
 
-        fetch();
+        fetch(url);
     });
 };
-

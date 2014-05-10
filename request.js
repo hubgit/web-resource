@@ -82,11 +82,11 @@ Request.prototype.run = function() {
                     this.queue.items.unshift(this); // add this request back on to start of the queue
                 }
 
-                this.deferred.reject(new Error(xhr));
+                this.deferred.reject(new Error(xhr.response));
                 break;
 
             default:
-                this.deferred.reject(new Error(xhr));
+                this.deferred.reject(new Error(xhr.response));
                 break;
         }
     }.bind(this);

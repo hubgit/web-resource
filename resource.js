@@ -58,12 +58,10 @@ Resource.prototype.get = function(responseType, headers) {
 
     console.log('request', options);
 
-    // TODO: needs a promise for each request?
-    if (!this.promise) {
-        this.request = new Request(options);
-        this.promise = this.request.enqueue();
-    }
+    // TODO: separate requests for subsequent gets (different mimetypes, etc)
+    // TODO: return request, or the enqueue promise?
+    this.request = new Request(options);
 
-    return this.promise;
+    return this.request.enqueue();
 };
 

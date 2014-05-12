@@ -13,23 +13,31 @@ Collection.prototype.get = function(responseType, headers) {
     var collection = this;
 
     return new Promise(function(resolve, reject) {
-        var items = [];
+        var result = [];
 
         var fetch = function(url) {
             var resource = new Resource(url);
 
             resource.get(responseType, headers).then(function(response) {
-                collection.itemsSelector(response, resource.request).forEach(function(item) {
-                    items.push(item);
-                });
+                var items = collection.items(response, resource.request);
 
-                var next = collection.nextSelector(response, resource.request);
-                // TODO: handle URL + params automatically?
+                if (items) {
+                    items.forEach(function(item) {
+                        result.push(item);
+                    });
+                }
+
+                var next = collection.next(response, resource.request);
+
+                // array = url + params
+                if (next instanceof Array) {
+                    next = next[0] + collection.buildQueryString(next[1]);
+                }
 
                 if (next) {
                     fetch(next);
                 } else {
-                    resolve(items);
+                    resolve(result);
                 }
             }, reject);
         };
@@ -40,18 +48,19 @@ Collection.prototype.get = function(responseType, headers) {
     });
 };
 
-Collection.prototype.itemsSelector = function(response, request) {
+Collection.prototype.items = function(response, request) {
     switch (request.responseType) {
         case 'json':
-        if (response._items) {
-            return response._items;
-        }
+            // TODO: object vs array
+            if (response._items) {
+                return response._items;
+            }
 
-        return response;
+            return response;
     }
 };
 
-Collection.prototype.nextSelector = function(response, request) {
+Collection.prototype.next = function(response, request) {
     var linkHeader = request.xhr.getResponseHeader('Link');
 
     if (linkHeader) {

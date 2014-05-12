@@ -34,6 +34,10 @@ Request.prototype.prepare = function() {
     // override this to alter the URL
 };
 
+Request.prototype.abort = function() {
+    this.xhr.abort();
+};
+
 Request.prototype.enqueue = function() {
     if (!this.queued) {
         var queueName = this.queueName();

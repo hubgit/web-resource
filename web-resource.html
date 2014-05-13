@@ -2,3 +2,35 @@
 <script src="request.js"></script>
 <script src="resource.js"></script>
 <script src="collection.js"></script>
+
+<polymer-element name="resource-queue">
+  <template>
+    <style>
+    :host { display: block; }
+    </style>
+
+    <template if="{{ queues.length }}">
+      <div class="panel panel-default">
+        <h2 class="panel-heading">Queues</h2>
+
+        <ul class="list-group">
+          <template repeat="{{ queue in queues }}">
+            <li class="list-group-item"><span class="badge">{{ queue.items.length + queue.counter }}</span>
+            <span class="label {{ { 'label-success': !queue.items.length } | tokenList }}">{{ queue.name }}</span>
+            <span class="label {{ { 'label-success': queue.progress.status === 200 } | tokenList }}">{{ queue.progress.status }}</span>
+            <a href="{{ queue.progress.url }}" target="_blank">{{ queue.progress.url }}</a>
+            </li>
+          </template>
+        </ul>
+      </div>
+    </template>
+  </template>
+
+  <script>
+  Polymer('resource-queue', {
+    ready: function() {
+      this.queues = window.queuesList;
+    }
+  });
+  </script>
+</polymer-element>

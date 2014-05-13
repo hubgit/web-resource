@@ -2,6 +2,8 @@
 
 'use strict';
 
+var queuesList = [];
+
 var queues = {};
 
 var Request = function(options) {
@@ -20,7 +22,8 @@ var Request = function(options) {
         server: options.delayServer || 1
     };
 
-    this.prepare(); // may alter the URL
+    this.originalURL = this.url; // as prepare() may alter the URL
+    this.prepare();
 
     this.deferred = {};
 
@@ -41,11 +44,14 @@ Request.prototype.abort = function() {
 Request.prototype.enqueue = function() {
     if (!this.queued) {
         var queueName = this.queueName();
+        console.log('queue name', queueName)
 
         this.queue = queues[queueName];
 
         if (!this.queue) {
-            this.queue = queues[queueName] = new Queue();
+            this.queue = new Queue({ name: queueName });
+            queues[queueName] = this.queue;
+            queuesList.push(this.queue);
         }
 
         this.queue.add(this);
@@ -57,10 +63,16 @@ Request.prototype.enqueue = function() {
 };
 
 Request.prototype.run = function() {
+    this.queue.progress = {
+        url: this.originalURL,
+        status: null
+    };
+
     var xhr = this.xhr = new XMLHttpRequest();
 
     var onresponse = function() {
         console.log(xhr.status, this.url);
+        this.queue.progress.status = xhr.status;
 
         switch (xhr.status) {
             case 200: // ok
@@ -135,9 +147,9 @@ Request.prototype.rateLimitDelay = function(xhr) {
 
 Request.prototype.queueName = function() {
     var a = document.createElement('a');
-    a.href = this.url;
+    a.href = this.originalURL;
 
-    return a.hostname;
+    return a.host;
 };
 
 Request.prototype.parseLinkHeader = function(header) {

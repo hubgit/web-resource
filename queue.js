@@ -2,12 +2,18 @@
 
 var Queue = function(options) {
     this.options = options || {};
+    this.name = options.name;
     this.parallel = this.options.parallel || 1;
     this.rateLimit = this.options.rateLimit || 0;
 
     this.items = [];
     this.counter = 0;
     this.stopped = false;
+
+    this.progress = {
+        url: null,
+        status: null
+    };
 };
 
 Queue.prototype.stop = function(delay) {

@@ -98,11 +98,19 @@ Request.prototype.run = function() {
                     this.queue.items.unshift(this); // add this request back on to start of the queue
                 }
 
-                this.deferred.reject(new Error(xhr.response));
+                this.deferred.reject({
+                    xhr: xhr,
+                    request: this,
+                    message: xhr.statusText
+                });
                 break;
 
             default:
-                this.deferred.reject(new Error(xhr.response));
+                this.deferred.reject({
+                    xhr: xhr,
+                    request: this,
+                    message: xhr.statusText
+                });
                 break;
         }
     }.bind(this);

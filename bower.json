@@ -1,7 +1,7 @@
 {
   "name": "web-resource",
-  "version": "0.0.0",
-  "main": "resource.js",
+  "version": "0.0.1",
+  "main": "web-resource.html",
   "license": "MIT",
   "ignore": [
     "**/.*",

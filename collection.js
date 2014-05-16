@@ -1,4 +1,4 @@
-/*globals Resource:false */
+/*globals Resource:false, Context:false, console:false */
 
 'use strict';
 
@@ -15,18 +15,18 @@ Collection.prototype.get = function(responseType, headers) {
     return new Promise(function(resolve, reject) {
         var result = [];
 
+        var proceed = function(next) {
+            if (next) {
+                fetch(next);
+            } else {
+                resolve(result);
+            }
+        };
+
         var fetch = function(url) {
             var resource = new Resource(url);
 
             resource.get(responseType, headers).then(function(response) {
-                var items = collection.items(response, resource.request);
-
-                if (items) {
-                    items.forEach(function(item) {
-                        result.push(item);
-                    });
-                }
-
                 var next = collection.next(response, resource.request);
 
                 // array = url + params
@@ -34,10 +34,32 @@ Collection.prototype.get = function(responseType, headers) {
                     next = next[0] + collection.buildQueryString(next[1]);
                 }
 
-                if (next) {
-                    fetch(next);
-                } else {
-                    resolve(result);
+                var items = collection.items(response, resource.request);
+
+                if (!items) {
+                    proceed(next); // set "next" to null?
+                }
+
+                switch (responseType) {
+                    case 'jsonld':
+                        Promise.all(items.map(function(item) {
+                            return Context.parse(item);
+                        })).then(function(items) {
+                            items.forEach(function(item) {
+                                result.push(item);
+                            });
+
+                            proceed(next);
+                        });
+                        break;
+
+                    default:
+                        items.forEach(function(item) {
+                            result.push(item);
+                        });
+
+                        proceed(next);
+                        break;
                 }
             }, reject);
         };

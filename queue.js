@@ -2,7 +2,7 @@
 
 var Queue = function(options) {
     this.options = options || {};
-    this.name = options.name;
+    this.name = this.options.name;
     this.parallel = this.options.parallel || 1;
     this.rateLimit = this.options.rateLimit || 0;
 
@@ -43,7 +43,9 @@ Queue.prototype.next = function() {
         this.counter++;
 
         // continue on either success or failure
-        this.items.shift().run().then(this.onresult.bind(this), this.onresult.bind(this));
+        var item = this.items.shift();
+
+        item().then(this.onresult.bind(this), this.onresult.bind(this));
     }
 };
 

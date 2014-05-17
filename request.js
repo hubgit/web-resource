@@ -1,4 +1,4 @@
-/*global Queue:false */
+/*global Queue:false, console: false */
 
 'use strict';
 
@@ -54,7 +54,7 @@ Request.prototype.enqueue = function() {
             queuesList.push(this.queue);
         }
 
-        this.queue.add(this);
+        this.queue.add(this.run.bind(this));
 
         this.queued = true;
     }
@@ -86,7 +86,7 @@ Request.prototype.run = function() {
                 var delay = this.rateLimitDelay(xhr);
                 console.log('Rate-limited: sleeping for', delay, 'seconds');
                 this.queue.stop(delay);
-                this.queue.items.unshift(this); // add this request back on to the start of the queue
+                this.queue.items.unshift(this.run.bind(this)); // add this request back on to the start of the queue
                 //this.deferred.notify('rate-limit');
                 break;
 
@@ -95,7 +95,7 @@ Request.prototype.run = function() {
                 this.queue.stop(this.delay.server);
 
                 if (--this.tries) {
-                    this.queue.items.unshift(this); // add this request back on to start of the queue
+                    this.queue.items.unshift(this.run.bind(this)); // add this request back on to start of the queue
                 }
 
                 this.deferred.reject({

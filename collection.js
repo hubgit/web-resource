@@ -73,6 +73,9 @@ Collection.prototype.get = function(responseType, headers) {
 Collection.prototype.items = function(response, request) {
     switch (request.responseType) {
         case 'json':
+            if (Array.isArray(response)) {
+                return response;
+            }
             // TODO: object vs array
             if (response._items) {
                 return response._items;
@@ -83,18 +86,27 @@ Collection.prototype.items = function(response, request) {
 };
 
 Collection.prototype.next = function(response, request) {
-    var linkHeader = request.xhr.getResponseHeader('Link');
+    // may not be allowed to read the Link header
+    try {
+        var linkHeader = request.xhr.getResponseHeader('Link');
 
-    if (linkHeader) {
-        var links = request.parseLinkHeader(linkHeader);
+        if (linkHeader) {
+            var links = request.parseLinkHeader(linkHeader);
 
-        if (links.next) {
-            return links.next;
+            if (links.next) {
+                return links.next;
+            }
         }
+    } catch (e) {
+        console.warn(e);
     }
 
     switch (request.responseType) {
         case 'json':
+            if (Array.isArray(response)) {
+                return null;
+            }
+
             if (response._links && response._links.next) {
                 return response._links.next.href;
             }

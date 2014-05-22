@@ -23,6 +23,16 @@ Collection.prototype.get = function(responseType, headers) {
             }
         };
 
+        var save = function(items) {
+            items.forEach(function(item) {
+                if (typeof collection.emit === 'function') {
+                    collection.emit(item);
+                } else {
+                    result.push(item);
+                }
+            });
+        };
+
         var fetch = function(url) {
             var resource = new Resource(url);
 
@@ -34,6 +44,7 @@ Collection.prototype.get = function(responseType, headers) {
                     next = next[0] + collection.buildQueryString(next[1]);
                 }
 
+                // TODO: make this a Promise?
                 var items = collection.items(response, resource.request);
 
                 if (!items) {
@@ -45,19 +56,15 @@ Collection.prototype.get = function(responseType, headers) {
                         Promise.all(items.map(function(item) {
                             return Context.parse(item);
                         })).then(function(items) {
-                            items.forEach(function(item) {
-                                result.push(item);
-                            });
-
+                            save(items);
                             proceed(next);
+                        }, function(e) {
+                            console.warn(e);
                         });
                         break;
 
                     default:
-                        items.forEach(function(item) {
-                            result.push(item);
-                        });
-
+                        save(items);
                         proceed(next);
                         break;
                 }

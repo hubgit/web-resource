@@ -17,11 +17,34 @@
         <h2 class="panel-heading">Queues</h2>
 
         <ul class="list-group">
-          <template repeat="{{ queue in queues }}">
-            <li class="list-group-item"><span class="badge">{{ queue.items.length + queue.counter }}</span>
-            <span class="label {{ { 'label-success': !queue.items.length } | tokenList }}">{{ queue.name }}</span>
-            <span class="label {{ { 'label-success': queue.progress.status === 200 } | tokenList }}">{{ queue.progress.status }}</span>
-            <a href="{{ queue.progress.url }}" target="_blank">{{ queue.progress.url }}</a>
+          <template repeat="{{ queue, queueIndex in queues }}">
+            <li class="list-group-item">
+              <div>
+                <span class="label label-info">{{ queue.name }}</span>
+                <span class="badge">{{ queue.items.length + queue.counter }}</span>
+
+                <template if="{{ queue.items.length }}">
+                  <template if="{{ queue.stopped }}">
+                    <button class="btn btn-xs btn-default" type="button"
+                      on-click="{{ startQueue }}" data-queue-index="{{ queueIndex }}">continue</button>
+                  </template>
+
+                  <template if="{{ !queue.stopped }}">
+                    <button class="btn btn-xs btn-default" type="button"
+                      on-click="{{ stopQueue }}" data-queue-index="{{ queueIndex }}">pause</button>
+                  </template>
+
+                  <button class="btn btn-xs btn-danger" type="button"
+                    on-click="{{ clearQueue }}" data-queue-index="{{ queueIndex }}">clear</button>
+                </template>
+              </div>
+
+              <template repeat="{{ log in queue.logs }}">
+                <div>
+                  <a href="{{ log.url }}" target="_blank">{{ log.url }}</a>
+                  <span class="label {{ { 'label-success': log.status === 200 } | tokenList }}">{{ log.status }}</span>
+                </div>
+              </template>
             </li>
           </template>
         </ul>
@@ -33,7 +56,22 @@
   Polymer('resource-queue', {
     ready: function() {
       this.queues = window.queuesList;
-    }
+    },
+
+    stopQueue: function(event, details, sender) {
+      var index = sender.getAttribute('data-queue-index');
+      this.queues[index].stop();
+    },
+
+    startQueue: function(event, details, sender) {
+      var index = sender.getAttribute('data-queue-index');
+      this.queues[index].start();
+    },
+
+    clearQueue: function(event, details, sender) {
+      var index = sender.getAttribute('data-queue-index');
+      this.queues[index].clear();
+    },
   });
   </script>
 </polymer-element>

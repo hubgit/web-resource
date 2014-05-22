@@ -70,3 +70,25 @@ Resource.prototype.get = function(responseType, headers) {
     return this.request.enqueue();
 };
 
+Resource.prototype.head = function(responseType, headers) {
+    var options = {
+        url: this.url,
+        method: 'HEAD',
+        headers: this.prepareHeaders(headers, responseType),
+    };
+
+    console.log('request', options);
+
+    // TODO: separate requests for subsequent gets (different mimetypes, etc)
+    // TODO: return request, or the enqueue promise?
+    this.request = new Request(options);
+
+    return this.request.enqueue();
+};
+
+Resource.prototype.absolute = function(path) {
+    var url = new URL(path, this.url);
+
+    return url.href;
+};
+

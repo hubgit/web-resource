@@ -15,7 +15,6 @@ var Request = function(options) {
 
     this.priority = options.priority || false;
     this.tries = options.tries || 1;
-    this.rateLimit = options.rateLimit || 0;
 
     this.delay = {
         rate: options.delayRate || 10000,
@@ -44,7 +43,6 @@ Request.prototype.abort = function() {
 Request.prototype.enqueue = function() {
     if (!this.queued) {
         var queueName = this.queueName();
-        console.log('queue name', queueName)
 
         this.queue = queues[queueName];
 
@@ -63,21 +61,28 @@ Request.prototype.enqueue = function() {
 };
 
 Request.prototype.run = function() {
-    this.queue.progress = {
-        url: this.originalURL,
-        status: null
-    };
+    this.queue.log({
+        status: null,
+        url: this.originalURL
+    });
 
     var xhr = this.xhr = new XMLHttpRequest();
 
     var onresponse = function() {
         console.log(xhr.status, this.url);
-        this.queue.progress.status = xhr.status;
+
+        this.queue.log({
+            status: xhr.status,
+            url: this.originalURL
+        });
 
         switch (xhr.status) {
             case 200: // ok
             case 201: // ok
             case 204: // ok
+            //case 301: // redirect (if nofollow)
+            //case 302: // redirect (if nofollow)
+            //case 303: // redirect (if nofollow)
                 this.deferred.resolve(xhr.response);
                 break;
 

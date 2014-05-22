@@ -4,13 +4,13 @@ var Queue = function(options) {
     this.options = options || {};
     this.name = this.options.name;
     this.parallel = this.options.parallel || 1; // how many requests can be running at the same time
-    this.rateLimit = this.options.rateLimit || 0; // amount of time to wait between requests
+    this.rateLimit = this.options.rateLimit || 25; // amount of time to wait between requests
 
     this.items = [];
     this.counter = 0;
     this.stopped = false;
 
-    this.progress = {}; // for use by success/failure handlers
+    this.logs = []; // for use by success/failure handlers
 };
 
 Queue.prototype.stop = function(delay) {
@@ -60,4 +60,13 @@ Queue.prototype.add = function(item) {
 
     this.next();
 };
+
+Queue.prototype.log = function(item) {
+    if (this.logs.length > 1) {
+        this.logs.shift();
+    }
+
+    this.logs.push(item);
+};
+
 

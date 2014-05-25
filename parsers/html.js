@@ -4,9 +4,7 @@
 
 // adapted from https://github.com/hubgit/jquery-microdata
 
-Parsers.HTML = function(root) {
-  this.root = root || document;
-};
+Parsers.HTML = function() {};
 
 // get all properties as a key/value(s) object
 Parsers.HTML.prototype.microdata = function(node) {
@@ -75,7 +73,7 @@ Parsers.HTML.prototype.attrs = function(node, attribute) {
 
 // element-scoped querySelectorAll with array return value
 Parsers.HTML.prototype.select = function(selector, node) {
-  node = node || this.root;
+  node = node || document;
 
   // avoid Polymer's querySelectorAll shim
   if (typeof window.unwrap === 'function') {
@@ -89,6 +87,8 @@ Parsers.HTML.prototype.select = function(selector, node) {
 
   var nodes = node.querySelectorAll(selector);
 
+  console.log('nodes', nodes);
+
   return Array.prototype.slice.call(nodes);
 };
 
@@ -97,7 +97,7 @@ Parsers.HTML.prototype.propertyNodes = function(node) {
   var nodes = [node];
 
   this.attrs(node, 'itemref').forEach(function(id) {
-    nodes.push(this.root.getElementById(id));
+    nodes.push(node.ownerDocument.getElementById(id));
   }.bind(this));
 
   var output = [];

@@ -67,7 +67,22 @@ Resource.prototype.get = function(responseType, headers) {
     // TODO: return request, or the enqueue promise?
     this.request = new Request(options);
 
-    return this.request.enqueue();
+    return this.request.enqueue().then(function(response) {
+        switch (responseType) {
+            case 'html':
+                // Content-Location header isn't supported natively by browsers,
+                // so add a base element to HTML if needed
+
+                if (!response.querySelector('base')) {
+                    var base = response.createElement('base');
+                    base.href = this.request.xhr.getResponseHeader('Content-Location');
+                    response.querySelector('head').appendChild(base);
+                }
+                break;
+        }
+
+        return response;
+    }.bind(this));
 };
 
 Resource.prototype.head = function(responseType, headers) {

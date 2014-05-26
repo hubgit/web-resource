@@ -1,4 +1,4 @@
-/*global Request:false */
+/*global Request:false, console:false */
 
 'use strict';
 
@@ -90,6 +90,23 @@ Resource.prototype.head = function(responseType, headers) {
         url: this.url,
         method: 'HEAD',
         headers: this.prepareHeaders(headers, responseType),
+    };
+
+    console.log('request', options);
+
+    // TODO: separate requests for subsequent gets (different mimetypes, etc)
+    // TODO: return request, or the enqueue promise?
+    this.request = new Request(options);
+
+    return this.request.enqueue();
+};
+
+Resource.prototype.post = function(responseType, headers, data) {
+    var options = {
+        url: this.url,
+        method: 'POST',
+        headers: this.prepareHeaders(headers, responseType),
+        data: data
     };
 
     console.log('request', options);

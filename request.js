@@ -76,6 +76,8 @@ Request.prototype.run = function() {
             url: this.originalURL
         });
 
+        //console.log('response', xhr.response);
+
         switch (xhr.status) {
             case 200: // ok
             case 201: // ok

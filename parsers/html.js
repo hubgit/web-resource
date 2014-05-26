@@ -10,7 +10,7 @@ Parsers.HTML = function() {};
 Parsers.HTML.prototype.microdata = function(node) {
   // select items of a certain type
   if (typeof node === 'string') {
-    return this.microdata(this.items(node));
+    return this.microdata(this.items(null, node));
   }
 
   // map an array of nodes
@@ -51,8 +51,8 @@ Parsers.HTML.prototype.microdata = function(node) {
   return data;
 };
 
-Parsers.HTML.prototype.items = function(itemtype) {
-  return this.select('[itemscope]').filter(function(node) {
+Parsers.HTML.prototype.items = function(itemtype, node) {
+  return this.select('[itemscope]', node).filter(function(node) {
     if (!itemtype) {
       return true;
     }
@@ -86,8 +86,6 @@ Parsers.HTML.prototype.select = function(selector, node) {
   }
 
   var nodes = node.querySelectorAll(selector);
-
-  console.log('nodes', nodes);
 
   return Array.prototype.slice.call(nodes);
 };
@@ -157,3 +155,62 @@ Parsers.HTML.prototype.itemValue = function(node) {
   }
 };
 
+// extract* functions derived from https://github.com/dnewcome/jath
+
+Parsers.HTML.prototype.extract = function(template, node) {
+  node = node || document;
+
+  if (Array.isArray(template)) {
+    return this.extractArray(template, node);
+  }
+
+  if (typeof template === 'object') {
+    return this.extractObject(template, node);
+  }
+
+  return this.extractItem(template, node);
+};
+
+Parsers.HTML.prototype.extractArray = function(template, node) {
+  if (template[0] === null) {
+    return template.slice(1).map(function(template) {
+      this.extract(template, node);
+    }.bind(this));
+  }
+
+  return this.select(template[0], node).map(function(node) {
+    return this.extract(template[1], node);
+  }.bind(this));
+};
+
+Parsers.HTML.prototype.extractObject = function(template, node) {
+  var output = {};
+
+  Object.keys(template).forEach(function(key) {
+    output[key] = this.extract(template[key], node);
+  }.bind(this));
+
+  return output;
+};
+
+Parsers.HTML.prototype.extractItem = function(template, node) {
+  if (template.substring(0, 1) === ':') {
+    return template.substring(1); // literal value, from template
+  }
+
+  var attributeName;
+  var attributePosition = template.indexOf('@');
+
+  if (attributePosition !== -1) {
+    attributeName = template.substring(attributePosition + 1).trim();
+    template = template.substring(0, attributePosition).trim();
+  }
+
+  var itemNode = template ? node.querySelector(template) : node;
+
+  if (!itemNode) {
+    return null;
+  }
+
+  return attributeName ? itemNode.getAttribute(attributeName) : itemNode.textContent.trim();
+};

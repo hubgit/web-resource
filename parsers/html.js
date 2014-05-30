@@ -212,5 +212,14 @@ Parsers.HTML.prototype.extractItem = function(template, node) {
     return null;
   }
 
-  return attributeName ? itemNode.getAttribute(attributeName) : itemNode.textContent.trim();
+  if (attributeName) {
+    // special attributes
+    if (['href'].indexOf(attributeName) !== -1) {
+      return itemNode[attributeName];
+    }
+
+    return itemNode.getAttribute(attributeName);
+  }
+
+  return itemNode.textContent.trim();
 };

@@ -3,6 +3,10 @@
 'use strict';
 
 var Resource = function(url, params) {
+    if (url instanceof URL) {
+        url = url.href;
+    }
+
     this.url = url;
 
     if (params) {

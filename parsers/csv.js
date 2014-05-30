@@ -1,8 +1,8 @@
-/*globals Parsers:true */
+/*globals CSVParser:true */
 
 // adapted from https://github.com/mholt/jquery.parse/
 
-Parsers.CSV = function Parser(config)
+window.CSVParser = function(config)
 {
     'use strict';
 

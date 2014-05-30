@@ -1,34 +1,32 @@
-/*globals Parsers:true, HTMLDocument:false */
+/* globals HTML:true, HTMLDocument:false */
 
 'use strict';
 
-// adapted from https://github.com/hubgit/jquery-microdata
-
-Parsers.HTML = function() {};
+window.HTML = {};
 
 // get all properties as a key/value(s) object
-Parsers.HTML.prototype.microdata = function(node) {
+HTML.microdata = function(node) {
   // select items of a certain type
   if (typeof node === 'string') {
-    return this.microdata(this.items(null, node));
+    return HTML.microdata(HTML.items(null, node));
   }
 
   // map an array of nodes
   if (Array.isArray(node)) {
-    return node.map(this.microdata.bind(this));
+    return node.map(HTML.microdata);
   }
 
   // the object always includes at least one itemtype
-  var types = this.attrs(node, 'itemtype');
+  var types = HTML.attrs('itemtype', node);
 
   var data = {
     type: types.length === 1 ? types[0] : types, // string, or array if multiple
   };
 
-  this.propertyNodes(node).forEach(function(propertyNode) {
-    var property = this.itemValue(propertyNode);
+  HTML.propertyNodes(null, node).forEach(function(propertyNode) {
+    var property = HTML.itemValue(propertyNode);
 
-    this.attrs(propertyNode, 'itemprop').forEach(function(name) {
+    HTML.attrs('itemprop', propertyNode).forEach(function(name) {
       /*
       if (typeof data[name] == 'undefined') {
         data[name] = [];
@@ -36,6 +34,9 @@ Parsers.HTML.prototype.microdata = function(node) {
 
       data[name].push(property);
       */
+
+      // TODO: custom object that always return an array if iterated?
+      // TODO: use schema.org ontology to decide if it's a singular or multiple property?
 
       if (typeof data[name] == 'undefined') {
         data[name] = property; // first item
@@ -46,24 +47,24 @@ Parsers.HTML.prototype.microdata = function(node) {
       }
 
     });
-  }.bind(this));
+  });
 
   return data;
 };
 
-Parsers.HTML.prototype.items = function(itemtype, node) {
-  return this.select('[itemscope]', node).filter(function(node) {
+HTML.items = function(itemtype, node) {
+  return HTML.select('[itemscope]', node).filter(function(node) {
     if (!itemtype) {
       return true;
     }
 
     // only find items of a certain itemtype
-    return this.attrs(node, 'itemtype').indexOf(itemtype) !== -1;
-  }.bind(this));
+    return HTML.attrs('itemtype', node).indexOf(itemtype) !== -1;
+  });
 };
 
 // get a space-separated attribute as an array
-Parsers.HTML.prototype.attrs = function(node, attribute) {
+HTML.attrs = function(attribute, node) {
   var text = node.getAttribute(attribute) || '';
 
   return text.split(/\s+/).filter(function(item) {
@@ -72,7 +73,7 @@ Parsers.HTML.prototype.attrs = function(node, attribute) {
 };
 
 // element-scoped querySelectorAll with array return value
-Parsers.HTML.prototype.select = function(selector, node) {
+HTML.select = function(selector, node) {
   node = node || document;
 
   // avoid Polymer's querySelectorAll shim
@@ -91,32 +92,34 @@ Parsers.HTML.prototype.select = function(selector, node) {
 };
 
 // all property nodes, including those in referenced nodes
-Parsers.HTML.prototype.propertyNodes = function(node) {
+HTML.propertyNodes = function(itemprop, node) {
   var nodes = [node];
 
-  this.attrs(node, 'itemref').forEach(function(id) {
+  HTML.attrs('itemref', node).forEach(function(id) {
     nodes.push(node.ownerDocument.getElementById(id));
-  }.bind(this));
+  });
 
   var output = [];
 
   nodes.forEach(function(node) {
-    var scopedProperties = this.select('[itemscope] [itemprop]', node);
+    var scopedProperties = HTML.select('[itemscope] [itemprop]', node);
 
-    this.select('[itemprop]', node).forEach(function(node) {
-      if (scopedProperties.indexOf(node) === -1) {
-        output.push(node);
-      }
+    HTML.select('[itemprop]', node).filter(function(node) {
+      return scopedProperties.indexOf(node) === -1;
+    }).filter(function(node) {
+      return !itemprop || HTML.attrs('itemprop', node).indexOf(itemprop) !== -1;
+    }).forEach(function(node) {
+      output.push(node);
     });
-  }.bind(this));
+  });
 
   return output;
 };
 
 // get the value of a node
-Parsers.HTML.prototype.itemValue = function(node) {
+HTML.itemValue = function(node) {
   if (node.hasAttribute('itemscope')) {
-    return this.microdata(node);
+    return HTML.microdata(node);
   }
 
   switch (node.nodeName) {
@@ -157,43 +160,43 @@ Parsers.HTML.prototype.itemValue = function(node) {
 
 // extract* functions derived from https://github.com/dnewcome/jath
 
-Parsers.HTML.prototype.extract = function(template, node) {
+HTML.extract = function(template, node) {
   node = node || document;
 
   if (Array.isArray(template)) {
-    return this.extractArray(template, node);
+    return HTML.extractArray(template, node);
   }
 
   if (typeof template === 'object') {
-    return this.extractObject(template, node);
+    return HTML.extractObject(template, node);
   }
 
-  return this.extractItem(template, node);
+  return HTML.extractItem(template, node);
 };
 
-Parsers.HTML.prototype.extractArray = function(template, node) {
+HTML.extractArray = function(template, node) {
   if (template[0] === null) {
     return template.slice(1).map(function(template) {
-      this.extract(template, node);
-    }.bind(this));
+      HTML.extract(template, node);
+    });
   }
 
-  return this.select(template[0], node).map(function(node) {
-    return this.extract(template[1], node);
-  }.bind(this));
+  return HTML.select(template[0], node).map(function(node) {
+    return HTML.extract(template[1], node);
+  });
 };
 
-Parsers.HTML.prototype.extractObject = function(template, node) {
+HTML.extractObject = function(template, node) {
   var output = {};
 
   Object.keys(template).forEach(function(key) {
-    output[key] = this.extract(template[key], node);
-  }.bind(this));
+    output[key] = HTML.extract(template[key], node);
+  });
 
   return output;
 };
 
-Parsers.HTML.prototype.extractItem = function(template, node) {
+HTML.extractItem = function(template, node) {
   if (template.substring(0, 1) === ':') {
     return template.substring(1); // literal value, from template
   }

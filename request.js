@@ -17,7 +17,7 @@ var Request = function(options) {
     this.tries = options.tries || 1;
 
     this.delay = {
-        rate: options.delayRate || 10000,
+        rate: options.delayRate || 10,
         server: options.delayServer || 1
     };
 
@@ -92,7 +92,8 @@ Request.prototype.run = function() {
             case 429: // rate-limited
                 var delay = this.rateLimitDelay(xhr);
                 console.log('Rate-limited: sleeping for', delay, 'seconds');
-                this.queue.stop(delay);
+                this.queue.stop(delay * 1000);
+                this.queue.counter--;
                 this.queue.items.unshift(this.run.bind(this)); // add this request back on to the start of the queue
                 //this.deferred.notify('rate-limit');
                 break;
@@ -150,7 +151,8 @@ Request.prototype.rateLimitDelay = function(xhr) {
         return this.delay.rate;
     }
 
-    var delay = reset - Date.now();
+    var delay = Math.ceil(reset - (Date.now() / 1000));
+    console.log('delay', reset, delay);
 
     // 15 minute delay if the given delay seems incorrect (can be due to server time differences)
     if (delay < 10) {

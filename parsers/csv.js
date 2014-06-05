@@ -124,7 +124,7 @@ window.CSVParser = function(config)
             var delim = delimiters[i];
             var delta = 0, avgFieldCount = 0;
 
-            var preview = new Parser({
+            var preview = new CSVParser({
                 delimiter: delim,
                 header: false,
                 dynamicTyping: false,

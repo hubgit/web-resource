@@ -12,6 +12,8 @@
     <style>
     :host { display: block; }
     .panel-heading { margin: 0; font-weight: 100; }
+    .log { white-space: nowrap; overflow-x: hidden; text-overflow: ellipsis; }
+    .label.status { display: inline-block; width: 3rem; }
     </style>
 
     <template if="{{ queues.length }}">
@@ -42,9 +44,9 @@
               </div>
 
               <template repeat="{{ log in queue.logs }}">
-                <div>
+                <div class="log">
+                  <span class="label status {{ log.status | statusClass }}">{{ log.status }}</span>
                   <a href="{{ log.url }}" target="_blank">{{ log.url }}</a>
-                  <span class="label {{ log.status | statusClass }}">{{ log.status }}</span>
                 </div>
               </template>
             </li>

@@ -62,11 +62,11 @@ Queue.prototype.add = function(item) {
 };
 
 Queue.prototype.log = function(item) {
-    if (this.logs.length > 1) {
-        this.logs.shift();
+    if (this.logs.length > 4) {
+        this.logs.pop();
     }
 
-    this.logs.push(item);
+    this.logs.unshift(item);
 };
 
 

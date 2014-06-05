@@ -63,7 +63,7 @@ Request.prototype.enqueue = function() {
 Request.prototype.run = function() {
     return new Promise(function(resolve, reject) {
         this.queue.log({
-            status: null,
+            status: '…',
             url: this.originalURL
         });
 
@@ -73,7 +73,7 @@ Request.prototype.run = function() {
             console.log(xhr.status, this.url);
 
             // TODO: wrong item if parallel > 1
-            this.queue.logs[this.queue.logs.length - 1].status = xhr.status;
+            this.queue.logs[0].status = xhr.status;
 
             //console.log('response', xhr.response);
 

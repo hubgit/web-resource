@@ -53,7 +53,9 @@ HTML.microdata = function(node) {
 };
 
 HTML.items = function(itemtype, node) {
-  return HTML.select('[itemscope]', node).filter(function(node) {
+  // TODO: only top-level items?
+
+  return HTML.select(['[itemscope]'], node).filter(function(node) {
     if (!itemtype) {
       return true;
     }
@@ -72,25 +74,6 @@ HTML.attrs = function(attribute, node) {
   });
 };
 
-// element-scoped querySelectorAll with array return value
-HTML.select = function(selector, node) {
-  node = node || document;
-
-  // avoid Polymer's querySelectorAll shim
-  if (typeof window.unwrap === 'function') {
-    node = window.unwrap(node);
-  }
-
-  // document queries shouldn't have scope
-  if (!(node instanceof HTMLDocument)) {
-    selector = ':scope ' + selector;
-  }
-
-  var nodes = node.querySelectorAll(selector);
-
-  return Array.prototype.slice.call(nodes);
-};
-
 // all property nodes, including those in referenced nodes
 HTML.propertyNodes = function(itemprop, node) {
   var nodes = [node];
@@ -102,9 +85,9 @@ HTML.propertyNodes = function(itemprop, node) {
   var output = [];
 
   nodes.forEach(function(node) {
-    var scopedProperties = HTML.select('[itemscope] [itemprop]', node);
+    var scopedProperties = HTML.select(['[itemscope] [itemprop]'], node);
 
-    HTML.select('[itemprop]', node).filter(function(node) {
+    HTML.select(['[itemprop]'], node).filter(function(node) {
       return scopedProperties.indexOf(node) === -1;
     }).filter(function(node) {
       return !itemprop || HTML.attrs('itemprop', node).indexOf(itemprop) !== -1;
@@ -159,6 +142,50 @@ HTML.itemValue = function(node) {
 };
 
 // extract* functions derived from https://github.com/dnewcome/jath
+
+// element-scoped querySelector/querySelectorAll
+HTML.select = function(selector, template, node) {
+  // TODO: extend the HTMLDocument and Element prototypes and avoid this parameter?
+  if (!node) {
+    if (template instanceof HTMLDocument || template instanceof Element) {
+      node = template;
+      template = null;
+    } else {
+      node = document;
+    }
+  }
+
+  // avoid Polymer's querySelectorAll shim
+  if (typeof window.unwrap === 'function') {
+    node = window.unwrap(node);
+  }
+
+  // document queries shouldn't have scope
+  if (!(node instanceof HTMLDocument)) {
+    selector = ':scope ' + selector;
+  }
+
+  if (Array.isArray(selector)) {
+    var items = node.querySelectorAll(selector);
+    items = Array.prototype.slice.call(items);
+
+    if (!template) {
+      return items;
+    }
+
+    return items.map(function(item) {
+      return HTML.extract(template, item);
+    });
+  } else {
+    var item = node.querySelector(selector);
+
+    if (!template) {
+      return item;
+    }
+
+    return HTML.extract(template, item);
+  }
+};
 
 HTML.extract = function(template, node) {
   node = node || document;

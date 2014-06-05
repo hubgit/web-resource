@@ -155,17 +155,27 @@ HTML.select = function(selector, template, node) {
     }
   }
 
+  // split selector if attribute matched
+  var attributePosition = selector.indexOf('@');
+  if (attributePosition !== -1) {
+    template = selector.substring(attributePosition + 1).trim();
+    selector = selector.substring(0, attributePosition).trim();
+  }
+
   // avoid Polymer's querySelectorAll shim
   if (typeof window.unwrap === 'function') {
     node = window.unwrap(node);
   }
 
-  // document queries shouldn't have scope
-  if (!(node instanceof HTMLDocument)) {
-    selector = ':scope ' + selector;
-  }
 
   if (Array.isArray(selector)) {
+    selector = selector[0];
+
+    // document queries shouldn't have scope
+    if (!(node instanceof HTMLDocument)) {
+      selector = ':scope ' + selector;
+    }
+
     var items = node.querySelectorAll(selector);
     items = Array.prototype.slice.call(items);
 
@@ -176,22 +186,31 @@ HTML.select = function(selector, template, node) {
     return items.map(function(item) {
       return HTML.extract(template, item);
     });
-  } else {
-    var item = node.querySelector(selector);
-
-    if (!template) {
-      return item;
-    }
-
-    return HTML.extract(template, item);
   }
+
+  // document queries shouldn't have scope
+  if (!(node instanceof HTMLDocument)) {
+    selector = ':scope ' + selector;
+  }
+
+  var item = node.querySelector(selector);
+
+  if (!item) {
+    return null;
+  }
+
+  if (!template) {
+    return item;
+  }
+
+  return HTML.extract(template, item);
 };
 
 HTML.extract = function(template, node) {
   node = node || document;
 
   if (Array.isArray(template)) {
-    return HTML.extractArray(template, node);
+    return HTML.select(template, '.', node);
   }
 
   if (typeof template === 'object') {
@@ -201,23 +220,11 @@ HTML.extract = function(template, node) {
   return HTML.extractItem(template, node);
 };
 
-HTML.extractArray = function(template, node) {
-  if (template[0] === null) {
-    return template.slice(1).map(function(template) {
-      HTML.extract(template, node);
-    });
-  }
-
-  return HTML.select(template[0], node).map(function(node) {
-    return HTML.extract(template[1], node);
-  });
-};
-
 HTML.extractObject = function(template, node) {
   var output = {};
 
   Object.keys(template).forEach(function(key) {
-    output[key] = HTML.extract(template[key], node);
+    output[key] = HTML.select(template[key], '.', node);
   });
 
   return output;
@@ -236,7 +243,7 @@ HTML.extractItem = function(template, node) {
     template = template.substring(0, attributePosition).trim();
   }
 
-  var itemNode = template ? node.querySelector(template) : node;
+  var itemNode = (template && template !== '.') ? node.querySelector(template) : node;
 
   if (!itemNode) {
     return null;

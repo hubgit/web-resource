@@ -38,6 +38,10 @@ Resource.prototype.prepareHeaders = function(headers, responseType) {
         case 'xml':
             headers.accept = headers.accept || 'application/xml';
             break;
+
+        case 'csv':
+            headers.accept = headers.accept || 'text/csv';
+            break;
     }
 
     return headers;
@@ -53,12 +57,18 @@ Resource.prototype.prepareResponseType = function(responseType) {
         case 'jsonld':
             responseType = 'json';
             break;
+
+        case 'csv':
+            responseType = 'text';
+            break;
     }
 
     return responseType;
 };
 
 Resource.prototype.get = function(responseType, headers) {
+    //TODO: allow { priority: true } as options parameter?
+
     var options = {
         url: this.url,
         headers: this.prepareHeaders(headers, responseType),

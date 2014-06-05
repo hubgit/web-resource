@@ -44,7 +44,7 @@
               <template repeat="{{ log in queue.logs }}">
                 <div>
                   <a href="{{ log.url }}" target="_blank">{{ log.url }}</a>
-                  <span class="label {{ { 'label-success': log.status === 200 } | tokenList }}">{{ log.status }}</span>
+                  <span class="label {{ log.status | statusClass }}">{{ log.status }}</span>
                 </div>
               </template>
             </li>
@@ -74,6 +74,26 @@
       var index = sender.getAttribute('data-queue-index');
       this.queues[index].clear();
     },
+
+    statusClass: function(status) {
+      if (status >= 500) {
+        return 'label-danger';
+      }
+
+      if (status >= 400) {
+        return 'label-warning';
+      }
+
+      if (status >= 300) {
+        return 'label-info';
+      }
+
+      if (status >= 200) {
+        return 'label-success';
+      }
+
+      return 'label-default';
+    }
   });
   </script>
 </polymer-element>

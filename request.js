@@ -61,82 +61,83 @@ Request.prototype.enqueue = function() {
 };
 
 Request.prototype.run = function() {
-    this.queue.log({
-        status: null,
-        url: this.originalURL
-    });
-
-    var xhr = this.xhr = new XMLHttpRequest();
-
-    var onresponse = function() {
-        console.log(xhr.status, this.url);
-
+    return new Promise(function(resolve, reject) {
         this.queue.log({
-            status: xhr.status,
+            status: null,
             url: this.originalURL
         });
 
-        //console.log('response', xhr.response);
+        var xhr = this.xhr = new XMLHttpRequest();
 
-        switch (xhr.status) {
-            case 200: // ok
-            case 201: // ok
-            case 204: // ok
-            //case 301: // redirect (if nofollow)
-            //case 302: // redirect (if nofollow)
-            //case 303: // redirect (if nofollow)
-                this.deferred.resolve(xhr.response);
-                break;
+        var onresponse = function() {
+            console.log(xhr.status, this.url);
 
-            case 403: // rate-limited
-            case 429: // rate-limited
-                var delay = this.rateLimitDelay(xhr);
-                console.log('Rate-limited: sleeping for', delay, 'seconds');
-                this.queue.stop(delay * 1000);
-                this.queue.counter--;
-                this.queue.items.unshift(this.run.bind(this)); // add this request back on to the start of the queue
-                //this.deferred.notify('rate-limit');
-                break;
+            // TODO: wrong item if parallel > 1
+            this.queue.logs[this.queue.logs.length - 1].status = xhr.status;
 
-            case 500: // server error
-            case 503: // unknown error
-                this.queue.stop(this.delay.server);
+            //console.log('response', xhr.response);
 
-                if (--this.tries) {
-                    this.queue.items.unshift(this.run.bind(this)); // add this request back on to start of the queue
-                }
+            switch (xhr.status) {
+                case 200: // ok
+                case 201: // ok
+                case 204: // ok
+                //case 301: // redirect (if nofollow)
+                //case 302: // redirect (if nofollow)
+                //case 303: // redirect (if nofollow)
+                    this.deferred.resolve(xhr.response);
+                    resolve();
+                    break;
 
-                this.deferred.reject({
-                    xhr: xhr,
-                    request: this,
-                    message: xhr.statusText
-                });
-                break;
+                case 403: // rate-limited or forbidden
+                case 429: // rate-limited
+                    var delay = this.rateLimitDelay(xhr);
+                    console.log('Rate-limited: sleeping for', delay, 'seconds');
+                    this.queue.stop(delay * 1000);
+                    this.queue.items.unshift(this.run.bind(this)); // add this request back on to the start of the queue
+                    //this.deferred.notify('rate-limit');
+                    reject();
+                    break;
 
-            default:
-                this.deferred.reject({
-                    xhr: xhr,
-                    request: this,
-                    message: xhr.statusText
-                });
-                break;
+                case 500: // server error
+                case 503: // unknown error
+                    this.queue.stop(this.delay.server);
+
+                    if (--this.tries) {
+                        this.queue.items.unshift(this.run.bind(this)); // add this request back on to start of the queue
+                    }
+
+                    this.deferred.reject({
+                        xhr: xhr,
+                        request: this,
+                        message: xhr.statusText
+                    });
+                    reject();
+                    break;
+
+                default:
+                    this.deferred.reject({
+                        xhr: xhr,
+                        request: this,
+                        message: xhr.statusText
+                    });
+                    reject();
+                    break;
+            }
+        }.bind(this);
+
+        xhr.onload = xhr.onerror = onresponse;
+        xhr.open(this.method, this.url);
+        xhr.responseType = this.responseType;
+
+        if (this.headers) {
+            // TODO: compatibility
+            Object.keys(this.headers).forEach(function(key) {
+                xhr.setRequestHeader(key, this.headers[key]);
+            }.bind(this));
         }
-    }.bind(this);
 
-    xhr.onload = xhr.onerror = onresponse;
-    xhr.open(this.method, this.url);
-    xhr.responseType = this.responseType;
-
-    if (this.headers) {
-        // TODO: compatibility
-        Object.keys(this.headers).forEach(function(key) {
-            xhr.setRequestHeader(key, this.headers[key]);
-        }.bind(this));
-    }
-
-    xhr.send(this.data);
-
-    return this.promise;
+        xhr.send(this.data);
+    }.bind(this));
 };
 
 Request.prototype.rateLimitDelay = function(xhr) {

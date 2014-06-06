@@ -53,15 +53,10 @@ HTML.microdata = function(node) {
 };
 
 HTML.items = function(itemtype, node) {
-  // TODO: only top-level items?
-
-  return HTML.select(['[itemscope]'], node).filter(function(node) {
-    if (!itemtype) {
-      return true;
-    }
-
+  // only select top-level items
+  return HTML.select(['[itemscope]:not([itemprop])'], node).filter(function(node) {
     // only find items of a certain itemtype
-    return HTML.attrs('itemtype', node).indexOf(itemtype) !== -1;
+    return !itemtype || HTML.attrs('itemtype', node).indexOf(itemtype) !== -1;
   });
 };
 

@@ -8,7 +8,7 @@ window.HTML = {};
 HTML.microdata = function(node) {
   // select items of a certain type
   if (typeof node === 'string') {
-    return HTML.microdata(HTML.items(null, node));
+    return HTML.microdata(HTML.items(node));
   }
 
   // map an array of nodes

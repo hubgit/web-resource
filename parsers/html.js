@@ -8,7 +8,8 @@ window.HTML = {};
 HTML.microdata = function(node) {
   // select items of a certain type
   if (typeof node === 'string') {
-    return HTML.microdata(HTML.items(node));
+    var root = arguments.length > 1 ? arguments[1] : document;
+    return HTML.microdata(HTML.items(node, root));
   }
 
   // map an array of nodes
@@ -153,7 +154,7 @@ HTML.select = function(selector, template, node) {
   // split selector if attribute matched
   var attributePosition = selector.indexOf('@');
   if (attributePosition !== -1) {
-    template = selector.substring(attributePosition + 1).trim();
+    template = selector.substring(attributePosition).trim();
     selector = selector.substring(0, attributePosition).trim();
   }
 
@@ -162,33 +163,39 @@ HTML.select = function(selector, template, node) {
     node = window.unwrap(node);
   }
 
+  var item;
 
-  if (Array.isArray(selector)) {
-    selector = selector[0];
+  if (selector) {
+    if (Array.isArray(selector)) {
+      selector = selector[0];
+
+      // document queries shouldn't have scope
+      if (!(node instanceof HTMLDocument)) {
+        selector = ':scope ' + selector;
+      }
+
+      var items = node.querySelectorAll(selector);
+      console.log(items.length + ' items selected', template);
+      items = Array.prototype.slice.call(items);
+
+      if (!template) {
+        return items;
+      }
+
+      return items.map(function(item) {
+        return HTML.extract(template, item);
+      });
+    }
 
     // document queries shouldn't have scope
     if (!(node instanceof HTMLDocument)) {
       selector = ':scope ' + selector;
     }
 
-    var items = node.querySelectorAll(selector);
-    items = Array.prototype.slice.call(items);
-
-    if (!template) {
-      return items;
-    }
-
-    return items.map(function(item) {
-      return HTML.extract(template, item);
-    });
+    item = node.querySelector(selector);
+  } else {
+    item = node;
   }
-
-  // document queries shouldn't have scope
-  if (!(node instanceof HTMLDocument)) {
-    selector = ':scope ' + selector;
-  }
-
-  var item = node.querySelector(selector);
 
   if (!item) {
     return null;
@@ -226,6 +233,8 @@ HTML.extractObject = function(template, node) {
 };
 
 HTML.extractItem = function(template, node) {
+  // TODO: template as function
+
   if (template.substring(0, 1) === ':') {
     return template.substring(1); // literal value, from template
   }

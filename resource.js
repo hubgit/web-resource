@@ -27,8 +27,11 @@ Resource.prototype.prepareHeaders = function(headers, responseType) {
 
     switch (responseType) {
         case 'json':
-        case 'jsonld':
             headers.accept = headers.accept || 'application/json';
+            break;
+
+        case 'jsonld':
+            headers.accept = headers.accept || 'application/ld+json';
             break;
 
         case 'html':

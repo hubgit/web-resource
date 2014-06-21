@@ -47,7 +47,7 @@ window.Context = {
       type = type.replace(/^http:\/\/www\.w3\.org\/2001\/XMLSchema#/, '');
 
       var value = item[key];
-      //delete item[key];
+      delete item[key]; // TODO: keep the original key?
 
       // TODO: use schema.org and other ontologies for type mapping
 
@@ -57,23 +57,21 @@ window.Context = {
                   case 'dateTime':
                       value = new Date(value);
                       break;
+
+                  case '@id':
+                      //value = new URL(value);
+                      break;
               }
 
               switch (container) {
                   case '@list':
                   case '@set':
-                      value = [value];
+                      value = Array.isArray(value) ? value : [value];
                       break;
               }
               break;
       }
 
-      // use just the last part of the URL as the property name
-      var matches = url.match(/\/([^\/]+)$/);
-
-      if (matches) {
-        url = matches[1];
-      }
 
       item[url] = value;
     });

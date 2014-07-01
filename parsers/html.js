@@ -255,7 +255,7 @@ HTML.extractItem = function(template, node) {
 
   if (attributeName) {
     // special attributes
-    if (['href'].indexOf(attributeName) !== -1) {
+    if (['href', 'src', 'data'].indexOf(attributeName) !== -1) {
       return itemNode[attributeName];
     }
 

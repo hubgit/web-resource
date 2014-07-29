@@ -24,8 +24,20 @@ HTML.microdata = function(node) {
     type: types.length === 1 ? types[0] : types, // string, or array if multiple
   };
 
+  var setData = function(name, property) {
+    if (typeof data[name] == 'undefined') {
+      data[name] = property; // first item
+    } else if (Array.isArray(data[name])) {
+      data[name].push(property); // more items
+    } else {
+      data[name] = [data[name], property]; // second item
+    }
+  };
+
   HTML.propertyNodes(null, node).forEach(function(propertyNode) {
     var property = HTML.itemValue(propertyNode);
+
+    var isHrefNode = propertyNode.hasAttribute('href');
 
     HTML.attrs('itemprop', propertyNode).forEach(function(name) {
       /*
@@ -39,14 +51,11 @@ HTML.microdata = function(node) {
       // TODO: custom object that always return an array if iterated?
       // TODO: use schema.org ontology to decide if it's a singular or multiple property?
 
-      if (typeof data[name] == 'undefined') {
-        data[name] = property; // first item
-      } else if (Array.isArray(data[name])) {
-        data[name].push(property); // more items
+      if (isHrefNode && name !== 'url') {
+        setData(name, { url: property });
       } else {
-        data[name] = [data[name], property]; // second item
+        setData(name, property)
       }
-
     });
   });
 

@@ -10,6 +10,10 @@ Provided as a Polymer web component, but the JS classes can be used independentl
 * Makes 1 request at a time, per domain (configurable).
 * Pause/resume for queues.
 
+## Demonstration
+
+[A very simple demo](http://git.macropus.org/web-resource/demo.html)
+
 ## Usage
 
 To use the Resource and Collection objects in JavaScript, import the `web-resource-scripts.html` file.

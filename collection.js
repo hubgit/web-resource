@@ -101,7 +101,7 @@ Collection.prototype.next = function(response, request) {
             var links = request.parseLinkHeader(linkHeader);
 
             if (links.next) {
-                return links.next;
+                return this.absolute(links.next);
             }
         }
     } catch (e) {
@@ -115,11 +115,19 @@ Collection.prototype.next = function(response, request) {
             }
 
             if (response._links && response._links.next) {
-                return response._links.next.href;
+                return this.absolute(response._links.next.href);
             }
 
             return null;
 
         // TODO: rel="next" in HTML
+        case 'html':
+            var node = response.querySelector('[rel=next][href]');
+
+            if (!node) {
+                return null;
+            }
+
+            return this.absolute(node.href);
     }
 };

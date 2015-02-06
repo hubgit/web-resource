@@ -12,7 +12,6 @@
 var resource = new Resource('https://api.spotify.com/v1/artists/5Al98vDcGka3JcJ1WlZYoN');
 
 resource.get('json').then(function(data) {
-    var json = JSON.stringify(data, null, '  ');
-    document.querySelector('output').textContent = json;
+    document.querySelector('output').textContent = JSON.stringify(data, null, '  ');
 });
 </script>

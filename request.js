@@ -47,7 +47,10 @@ Request.prototype.enqueue = function() {
         this.queue = queues[queueName];
 
         if (!this.queue) {
-            this.queue = new Queue({ name: queueName });
+            this.queue = new Queue({
+                name: queueName,
+                rateLimit: this.delay.server,
+            });
             queues[queueName] = this.queue;
             queuesList.push(this.queue);
         }
@@ -89,12 +92,29 @@ Request.prototype.run = function() {
                     break;
 
                 case 403: // rate-limited or forbidden
+                    var delay = this.rateLimitDelay(xhr);
+
+                    if (delay === -1) {
+                        console.log('Forbidden!');
+                        this.queue.stop();
+                    } else {
+                        console.log('Rate-limited: sleeping for', delay, 'seconds');
+                        this.queue.stop(delay * 1000);
+                        this.queue.items.unshift(this.run.bind(this)); // add this request back on to the start of the queue
+                        //this.deferred.notify('rate-limit');
+                    }
+
+                    reject();
+                    break;
+
                 case 429: // rate-limited
                     var delay = this.rateLimitDelay(xhr);
+
                     console.log('Rate-limited: sleeping for', delay, 'seconds');
                     this.queue.stop(delay * 1000);
                     this.queue.items.unshift(this.run.bind(this)); // add this request back on to the start of the queue
                     //this.deferred.notify('rate-limit');
+
                     reject();
                     break;
 
@@ -141,10 +161,16 @@ Request.prototype.run = function() {
 };
 
 Request.prototype.rateLimitDelay = function(xhr) {
-    var reset = xhr.getResponseHeader('x-rate-limit-reset');
+    var remaining = Number(xhr.getResponseHeader('x-rate-limit-remaining'));
+
+    if (remaining) {
+        return -1;
+    }
+
+    var reset = Number(xhr.getResponseHeader('x-rate-limit-reset'));
 
     if (!reset) {
-        reset = xhr.getResponseHeader('x-ratelimit-reset');
+        reset = Number(xhr.getResponseHeader('x-ratelimit-reset'));
     }
 
     // use the default if no rate-limit header

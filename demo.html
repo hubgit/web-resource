@@ -3,15 +3,29 @@
 <title>web-resource demo</title>
 
 <link rel="import" href="web-resource-scripts.html">
+<link rel="import" href="parsers/parsers.html">
 
 <body>
 
-<pre><output>Fetching…</output></pre>
+<h2>JSON</h2>
+<pre><output id="output-json">Fetching JSON…</output></pre>
+
+<h2>HTML</h2>
+<pre><output id="output-html">Fetching HTML…</output></pre>
 
 <script>
-var resource = new Resource('https://api.spotify.com/v1/artists/5Al98vDcGka3JcJ1WlZYoN');
+Resource('https://api.spotify.com/v1/artists/5Al98vDcGka3JcJ1WlZYoN').get('json').then(function(data) {
+    document.querySelector('#output-json').textContent = JSON.stringify(data, null, '  ');
+});
+</script>
 
-resource.get('json').then(function(data) {
-    document.querySelector('output').textContent = JSON.stringify(data, null, '  ');
+<script>
+Collection('https://peerj.com/articles/960.html').get('html', {
+    select: ['.article-authors .contrib', {
+        name: '[itemprop=name]',
+        url: 'a[itemprop=url] @href',
+    }]
+}).then(function(data) {
+    document.querySelector('#output-html').textContent = JSON.stringify(data, null, '  ');
 });
 </script>

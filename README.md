@@ -48,17 +48,16 @@ var collection = new Collection('https://api.spotify.com/v1/search', {
   q: 'artist:"Cows"'
 });
 
-// select the array of items
-collection.items = function(data) {
-  return data.artists.items;
-}
-
-// select the URL of the next chunk
-collection.next = function(data) {
-  return data.artists.next;
-}
-
-collection.get('json').then(function(items) {
+collection.get('json', {
+    // select the array of items
+    items: function(data) {
+      return data.artists.items;
+    },
+    // select the URL of the next chunk
+    next: function(data) {
+      return data.artists.next;
+    }
+}).then(function(items) {
   // do something with the items
 });
 ```

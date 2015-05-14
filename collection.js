@@ -1,16 +1,22 @@
-/*globals Resource:false, Context:false, console:false */
+/*globals Resource:false, Context:false, HTML:false, console:false */
 
 'use strict';
 
 var Collection = function(url, params) {
+    if (!(this instanceof Collection)) {
+        return new Collection(url, params);
+    }
+
     Resource.call(this, url, params);
 };
 
 Collection.prototype = Object.create(Resource.prototype);
 //Collection.prototype.constructor = Collection;
 
-Collection.prototype.get = function(responseType, headers) {
+Collection.prototype.get = function(responseType, options) {
     var collection = this;
+
+    this.handleOptions(responseType, options);
 
     return new Promise(function(resolve, reject) {
         var result = [];
@@ -36,7 +42,7 @@ Collection.prototype.get = function(responseType, headers) {
         var fetch = function(url) {
             var resource = new Resource(url);
 
-            resource.get(responseType, headers).then(function(response) {
+            resource.get(responseType, options.headers).then(function(response) {
                 var next = collection.next(response, resource.request);
 
                 // array = url + params
@@ -129,5 +135,28 @@ Collection.prototype.next = function(response, request) {
             }
 
             return this.absolute(node.href);
+    }
+};
+
+Collection.prototype.handleOptions = function(responseType, options) {
+    var collection = this;
+
+    // callbacks
+    ['items', 'next', 'emit'].forEach(function(name) {
+        if (typeof options[name] === 'function') {
+            collection[name] = options[name];
+        }
+    });
+
+    // an object describing how to select items
+    if (Array.isArray(options.select)) {
+        switch (responseType) {
+            case 'html':
+                collection.items = function(doc) {
+                    // select multiple items
+                    return HTML.select([options.select[0]], options.select[1], doc);
+                }
+                break;
+        }
     }
 };

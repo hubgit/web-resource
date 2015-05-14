@@ -16,6 +16,8 @@ Provided as a Polymer web component, but the JS classes can be used independentl
 
 ## Usage
 
+`bower install hubgit/web-resource --save`
+
 To use the Resource and Collection objects in JavaScript, import the `web-resource-scripts.html` file.
 
 To add the UI element and parsers (HTML, JSON-LD), import the `web-resource.html` file instead.

@@ -1,8 +1,6 @@
 # web-resource
 
-A JavaScript interface for fetching HTTP resources.
-
-Provided as a Polymer web component, but the JS classes can be used independently.
+A JavaScript interface for fetching HTTP resources from the web.
 
 ## Features
 

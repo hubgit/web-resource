@@ -33,7 +33,6 @@ Collection.prototype.get = function(responseType, options) {
                     collection.emit(item);
                 } else {
                     results.push(item);
-                    collection.total++;
                 }
             });
         };
@@ -45,7 +44,9 @@ Collection.prototype.get = function(responseType, options) {
                 // TODO: make this a Promise?
                 var items = collection.items(response, resource.request);
 
-                // NOTE: handle the items first, as a pagination limit might be detected here
+                collection.total += items ? items.length : 0;
+
+                // NOTE: count the items first, as a pagination limit might be detected here
                 var next = collection.next(response, resource.request);
 
                 // array = url + params

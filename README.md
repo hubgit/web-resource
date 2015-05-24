@@ -19,7 +19,7 @@ bower install hubgit/web-resource --save
 ```
 
 ```html
-<link rel="import" href="../bower_components/web-resource/import.html">
+<link rel="import" href="bower_components/web-resource/import.html">
 ```
 
 ## Examples

@@ -6,12 +6,38 @@
 <link rel="import" href="import.html">
 
 <!-- the output -->
-<h2>JSON</h2>
-<pre><output id="output-json">Fetching JSON…</output></pre>
+<h2>Resource (JSON)</h2>
+<pre><output id="output-json-resource">Fetching JSON…</output></pre>
 
-<!-- the script -->
+<h2>Collection (JSON)</h2>
+<pre><output id="output-json-collection">Fetching JSON…</output></pre>
+
+<!-- the scripts -->
 <script>
 Resource('https://api.spotify.com/v1/artists/5Al98vDcGka3JcJ1WlZYoN').get('json').then(function(data) {
-    document.querySelector('#output-json').textContent = JSON.stringify(data, null, 2);
+    document.querySelector('#output-json-resource').textContent = JSON.stringify(data, null, 2);
 });
+</script>
+
+<script>
+Collection('https://peerj.com/articles/index.json', { subject: 100 }).get('json', {
+    items: function(data) {
+        return data._items.map(function(item) {
+            return item.title;
+        });
+    },
+    next: function(data) {
+        if (this.total > 20) {
+            return null;
+        }
+
+        if (!data._links.next) {
+            return null;
+        }
+
+        return data._links.next.href;
+    },
+}).then(function(data) {
+    document.querySelector('#output-json-collection').textContent = JSON.stringify(data, null, 2);
+})
 </script>

@@ -1,7 +1,3 @@
-/*global Request:false, console:false */
-
-'use strict';
-
 var Resource = function(url, params) {
     if (!(this instanceof Resource)) {
         return new Resource(url, params);
@@ -14,6 +10,7 @@ var Resource = function(url, params) {
     this.url = url;
 
     if (params) {
+        this.params = params;
         this.url += this.buildQueryString(params);
     }
 };
@@ -39,6 +36,7 @@ Resource.prototype.prepareHeaders = function(headers, responseType) {
             break;
 
         case 'html':
+        case 'microdata':
             headers.accept = headers.accept || 'text/html';
             break;
 

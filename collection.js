@@ -1,7 +1,3 @@
-/*globals Resource:false, Context:false, HTML:false, console:false */
-
-'use strict';
-
 var Collection = function(url, params) {
     if (!(this instanceof Collection)) {
         return new Collection(url, params);
@@ -19,13 +15,15 @@ Collection.prototype.get = function(responseType, options) {
     this.handleOptions(responseType, options);
 
     return new Promise(function(resolve, reject) {
-        var result = [];
+        var results = [];
+
+        collection.total = 0;
 
         var proceed = function(next) {
             if (next) {
                 fetch(next);
             } else {
-                resolve(result);
+                resolve(results);
             }
         };
 
@@ -34,7 +32,8 @@ Collection.prototype.get = function(responseType, options) {
                 if (typeof collection.emit === 'function') {
                     collection.emit(item);
                 } else {
-                    result.push(item);
+                    results.push(item);
+                    collection.total++;
                 }
             });
         };
@@ -43,6 +42,10 @@ Collection.prototype.get = function(responseType, options) {
             var resource = new Resource(url);
 
             resource.get(responseType, options.headers).then(function(response) {
+                // TODO: make this a Promise?
+                var items = collection.items(response, resource.request);
+
+                // NOTE: handle the items first, as a pagination limit might be detected here
                 var next = collection.next(response, resource.request);
 
                 // array = url + params
@@ -50,13 +53,11 @@ Collection.prototype.get = function(responseType, options) {
                     next = next[0] + collection.buildQueryString(next[1]);
                 }
 
-                // TODO: make this a Promise?
-                var items = collection.items(response, resource.request);
-
                 if (!items) {
-                    proceed(next); // set "next" to null?
+                    proceed(next); // set "next" to null - is this appropriate, if no items are found?
                 }
 
+                // TODO: parser plugins?
                 switch (responseType) {
                     case 'jsonld':
                         Promise.all(items.map(function(item) {
@@ -144,7 +145,7 @@ Collection.prototype.handleOptions = function(responseType, options) {
     // callbacks
     ['items', 'next', 'emit'].forEach(function(name) {
         if (typeof options[name] === 'function') {
-            collection[name] = options[name];
+            collection[name] = options[name].bind(collection);
         }
     });
 

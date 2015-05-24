@@ -16,41 +16,31 @@ Provided as a Polymer web component, but the JS classes can be used independentl
 
 ## Usage
 
-`bower install hubgit/web-resource --save`
+```bash
+bower install hubgit/web-resource --save
+```
 
-To use the Resource and Collection objects in JavaScript, import the `web-resource-scripts.html` file.
-
-To add the UI element and parsers (HTML, JSON-LD), import the `web-resource.html` file instead.
+```html
+<link rel="import" href="../bower_components/web-resource/import.html">
+```
 
 ## Examples
 
 ### Fetch a resource as JSON
 
 ```javascript
-var resource = new Resource('https://api.spotify.com/v1/artists/5Al98vDcGka3JcJ1WlZYoN');
-
-resource.get('json').then(function(data) {
-    // do something with the data
-});
-```
-
-### Fetch a resource as JSON (shorthand version)
-```javascript
-var url = 'https://api.spotify.com/v1/artists/5Al98vDcGka3JcJ1WlZYoN';
-
-Resource(url).get('json').then(function(data) {
+Resource('https://api.spotify.com/v1/artists/5Al98vDcGka3JcJ1WlZYoN').get('json').then(function(data) {
     // do something with the data
 });
 ```
 
 ### Fetch a paginated collection, with query parameters
+
 ```javascript
-var collection = new Collection('https://api.spotify.com/v1/search', {
+Collection('https://api.spotify.com/v1/search', {
   type: 'artist',
   q: 'artist:"Cows"'
-});
-
-collection.get('json', {
+}).get('json', {
     // select the array of items
     items: function(data) {
       return data.artists.items;

@@ -22,6 +22,15 @@ bower install hubgit/web-resource --save
 <link rel="import" href="bower_components/web-resource/import.html">
 ```
 
+or
+
+```html
+<script src="bower_components/web-resource/queue.js"></script>
+<script src="bower_components/web-resource/request.js"></script>
+<script src="bower_components/web-resource/resource.js"></script>
+<script src="bower_components/web-resource/collection.js"></script>
+```
+
 ## Examples
 
 ### Fetch a resource as JSON

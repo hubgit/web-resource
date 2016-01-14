@@ -9,6 +9,7 @@ A JavaScript interface for fetching HTTP resources from the web.
 * Set request headers according to response type.
 * Define resource/collection in JSON.
 * Parse responses and select/extract data.
+* Detect rel=next from response headers.
 
 ## Usage
 
@@ -58,7 +59,8 @@ or
     "q": "cows"
   },
   "format": "json",
-  "select": "artists.items"
+  "select": "artists.items",
+  "next": "artists.next"
 }
 ```
 
@@ -70,7 +72,8 @@ or
     "extract": {
         "title": ".title",
         "published": ".date-published",
-    }
+    },
+    "next": "a[rel=next] @href"
 }
 ```
 
@@ -109,6 +112,7 @@ Collection('https://api.spotify.com/v1/search', {
     q: 'cows'
 }).get('json', {
     select: 'artists.items',
+    next: 'artists.next',
     emit: function(item) {
         item.title = item.title.replace(/^Title: /, '')
         // do something with each item

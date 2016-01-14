@@ -10,6 +10,7 @@ A JavaScript interface for fetching HTTP resources from the web.
 * Define resource/collection in JSON.
 * Parse responses and select/extract data.
 * Detect rel=next from response headers.
+* Replace variables in URL templates and remove from query parameters.
 
 ## Usage
 
@@ -105,6 +106,21 @@ collection.get('json').then(function(doc) {
 }).then(function(items) {
     // do something with the items
 })
+*/
+
+/*
+Collection({
+  url: 'https://api.spotify.com/v1/search', 
+  query: {
+    type: 'artist',
+    q: 'cows'
+  },
+  format: 'json',
+  select: 'artists.items',
+  next: 'artists.next',
+}).get().then(function(items) {
+  // do something with the items
+});
 */
 
 Collection('https://api.spotify.com/v1/search', {

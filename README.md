@@ -89,6 +89,12 @@ or
 ## Interface
 
 ```javascript
+Resource('https://api.spotify.com/v1/artists/5Al98vDcGka3JcJ1WlZYoN').get('json').then(function(item) {
+  // do something with the item
+});
+```
+
+```javascript
 /*
 var collection = new Collection('https://api.spotify.com/v1/search', {
     type: 'artist',
